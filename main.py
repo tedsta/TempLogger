@@ -6,6 +6,7 @@ import shutil
 import posixpath
 import mimetypes
 import urllib
+import cgi
 
 class RequestHandler(BaseHTTPRequestHandler):
 
@@ -19,6 +20,26 @@ class RequestHandler(BaseHTTPRequestHandler):
         f = self.send_head()
         if f:
             f.close()
+
+    def do_POST(self):
+        print("======= POST STARTED =======")
+        print(self.headers)
+        form = cgi.FieldStorage(
+            fp=self.rfile,
+            headers=self.headers,
+            environ={'REQUEST_METHOD':'POST',
+                     'CONTENT_TYPE':self.headers['Content-Type'],
+                     })
+        print("======= POST VALUES =======")
+        for item in form.list:
+            print(item)
+        print("\n")
+        self.send_response(200)
+        self.send_header("Content-type", "html")
+        self.send_header("Content-Length", str(13))
+        self.send_header("Last-Modified", "now") 
+        self.end_headers()
+        self.wfile.write(b"posted things")
 
     def send_head(self):
         """Common code for GET and HEAD commands.
@@ -45,7 +66,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                     path = index
                     break
             else:
-                return self.list_directory(path)
+                self.send_error(404, "File not found")
+                return None
         ctype = self.guess_type(path)
         try:
             f = open(path, 'rb')
