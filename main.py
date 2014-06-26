@@ -1,144 +1,90 @@
 #!/usr/bin/env python
 
-from http.server import HTTPServer, BaseHTTPRequestHandler
-import os
-import shutil
-import posixpath
-import mimetypes
-import urllib
-import cgi
+from socketio import socketio_manage
+from socketio.server import SocketIOServer
+from socketio.namespace import BaseNamespace
+from socketio.mixins import RoomsMixin, BroadcastMixin
 
-class RequestHandler(BaseHTTPRequestHandler):
+class ChatNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
+    def on_nickname(self, nickname):
+        self.request['nicknames'].append(nickname)
+        self.socket.session['nickname'] = nickname
+        self.broadcast_event('announcement', '%s has connected' % nickname)
+        self.broadcast_event('nicknames', self.request['nicknames'])
+        # Just have them join a default-named room
+        self.join('main_room')
 
-    def do_GET(self):
-        f = self.send_head()
-        if f:
-            shutil.copyfileobj(f, self.wfile)
-            f.close()
+    def recv_disconnect(self):
+        # Remove nickname from the list.
+        nickname = self.socket.session['nickname']
+        self.request['nicknames'].remove(nickname)
+        self.broadcast_event('announcement', '%s has disconnected' % nickname)
+        self.broadcast_event('nicknames', self.request['nicknames'])
 
-    def do_HEAD(self):
-        f = self.send_head()
-        if f:
-            f.close()
+        self.disconnect(silent=True)
 
-    def do_POST(self):
-        print("======= POST STARTED =======")
-        print(self.headers)
-        form = cgi.FieldStorage(
-            fp=self.rfile,
-            headers=self.headers,
-            environ={'REQUEST_METHOD':'POST',
-                     'CONTENT_TYPE':self.headers['Content-Type'],
-                     })
-        print("======= POST VALUES =======")
-        for item in form.list:
-            print(item)
-        print("\n")
-        self.send_response(200)
-        self.send_header("Content-type", "html")
-        self.send_header("Content-Length", str(13))
-        self.send_header("Last-Modified", "now") 
-        self.end_headers()
-        self.wfile.write(b"posted things")
+    def on_user_message(self, msg):
+        self.emit_to_room('main_room', 'msg_to_room',
+            self.socket.session['nickname'], msg)
 
-    def send_head(self):
-        """Common code for GET and HEAD commands.
+    def recv_message(self, message):
+        print "PING!!!", message
 
-        This sends the response code and MIME headers.
+###########################################################
 
-        Return value is either a file object (which has to be copied
-        to the outputfile by the caller unless the command was HEAD,
-        and must be closed by the caller under all circumstances), or
-        None, in which case the caller has nothing further to do.
-        """
-        path = self.translate_path(self.path)
-        f = None
-        if os.path.isdir(path):
-            if not self.path.endswith('/'):
-                # redirect browser - doing basically what apache does
-                self.send_response(301)
-                self.send_header("Location", self.path + "/")
-                self.end_headers()
-                return None
-            for index in "index.html", "index.htm":
-                index = os.path.join(path, index)
-                if os.path.exists(index):
-                    path = index
-                    break
-            else:
-                self.send_error(404, "File not found")
-                return None
-        ctype = self.guess_type(path)
-        try:
-            f = open(path, 'rb')
-        except IOError:
-            self.send_error(404, "File not found")
-            return None
-        self.send_response(200)
-        self.send_header("Content-type", ctype)
-        fs = os.fstat(f.fileno())
-        self.send_header("Content-Length", str(fs[6]))
-        self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
-        self.end_headers()
-        return f
+def not_found(start_response):
+    start_response("404 Not Found", [])
+    return ["<h1>Not Found</h1>"]
 
-    def translate_path(self, path):
-        """Translate a /-separated PATH to the local filename syntax.
+class Application:
+    def __init__(self):
+        self.request = {"nicknames":[]}
 
-        Components that mean special things to the local file system
-        (e.g. drive or directory names) are ignored.  (XXX They should
-        probably be diagnosed.)
-        """
-        # abandon query parameters
-        path = path.split('?',1)[0]
-        path = path.split('#',1)[0]
-        path = posixpath.normpath(urllib.parse.unquote(path))
-        words = path.split('/')
-        words = filter(None, words)
-        path = os.getcwd()
-        for word in words:
-            drive, word = os.path.splitdrive(word)
-            head, word = os.path.split(word)
-            if word in (os.curdir, os.pardir): continue
-            path = os.path.join(path, word)
-        return path
+    def __call__(self, environ, start_response):
+        path = environ['PATH_INFO'].strip('/')
 
-    def guess_type(self, path):
-        """Guess the type of a file.
+        if not path:
+            with open("index.html", "r") as f:
+                response_body = f.read()
 
-        Argument is a PATH (a filename).
+            # HTTP response code and message
+            status = '200 OK'
 
-        Return value is a string of the form type/subtype,
-        usable for a MIME Content-type header.
+            # These are HTTP headers expected by the client.
+            # They must be wrapped as a list of tupled pairs:
+            # [(Header name, Header value)].
+            response_headers = [('Content-Type', 'text/html'),
+                               ('Content-Length', str(len(response_body)))]
 
-        The default implementation looks the file's extension
-        up in the table self.extensions_map, using application/octet-stream
-        as a default; however it would be permissible (if
-        slow) to look inside the data to make a better guess.
-        """
-        base, ext = posixpath.splitext(path)
-        if ext in self.extensions_map:
-            return self.extensions_map[ext]
-        ext = ext.lower()
-        if ext in self.extensions_map:
-            return self.extensions_map[ext]
+            # Send them to the server using the supplied function
+            start_response(status, response_headers)
+
+            # Return the response body.
+            # Notice it is wrapped in a list although it could be any iterable.
+            return [response_body]
+        elif path.startswith("socket.io"):
+            socketio_manage(environ, {'': ChatNamespace}, self.request)
         else:
-            return self.extensions_map['']
+            with open(path, "r") as f:
+                data = f.read()
 
-    if not mimetypes.inited:
-        mimetypes.init() # try to read system mime.types
-    extensions_map = mimetypes.types_map.copy()
-    extensions_map.update({
-        '': 'application/octet-stream', # Default
-        '.py': 'text/plain',
-        '.c': 'text/plain',
-        '.h': 'text/plain',
-        })
+                if path.endswith(".js"):
+                    content_type = "text/javascript"
+                elif path.endswith(".css"):
+                    content_type = "text/css"
+                elif path.endswith(".swf"):
+                    content_type = "application/x-shockwave-flash"
+                else:
+                    content_type = "text/html"
+
+                start_response('200 OK', [('Content-Type', content_type)])
+                return [data]            
+            return not_found(start_response)
 
 ###############################################################
 
 def main():
-    httpd = HTTPServer(('127.0.0.1', 8000), RequestHandler)
+    httpd = SocketIOServer(('localhost', 8000), Application(), resource="socket.io")
     httpd.serve_forever()
 
 if __name__ == "__main__":
