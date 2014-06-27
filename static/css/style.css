@@ -1,5 +1,5 @@
 #chat,
-#nickname,
+#datetime,
 #messages {
   width: 600px;
 }
@@ -7,7 +7,7 @@
   position: relative;
   border: 1px solid #ccc;
 }
-#nickname,
+#datetime,
 #connecting {
   position: absolute;
   height: 410px;
@@ -21,19 +21,19 @@
   color: #666;
   display: block;
 }
-#nickname .wrap,
+#datetime .wrap,
 #connecting .wrap {
   padding-top: 150px;
 }
-#nickname input {
+#datetime input {
   border: 1px solid #ccc;
   padding: 10px;
 }
-#nickname input:focus {
+#datetime input:focus {
   border-color: #999;
   outline: 0;
 }
-#nickname #nickname-err {
+#datetime #nickname-err {
   color: #8b0000;
   font-size: 12px;
   visibility: hidden;

@@ -5,22 +5,18 @@ from socketio.server import SocketIOServer
 from socketio.namespace import BaseNamespace
 from socketio.mixins import RoomsMixin, BroadcastMixin
 
-class ChatNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
-    def on_nickname(self, nickname):
-        self.request['nicknames'].append(nickname)
-        self.socket.session['nickname'] = nickname
-        self.broadcast_event('announcement', '%s has connected' % nickname)
-        self.broadcast_event('nicknames', self.request['nicknames'])
+from degree_days_since import degree_days_since
+
+class LoggerNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
+    def on_start_end_datetime(self, start, end):
+        print(start, end)
+        self.broadcast_event('degree_days', "fooooo") 
+        #dgs = degree_days_since(20, start, end)
+        #self.broadcast_event('degree_days', str(dgs)) 
         # Just have them join a default-named room
         self.join('main_room')
 
     def recv_disconnect(self):
-        # Remove nickname from the list.
-        nickname = self.socket.session['nickname']
-        self.request['nicknames'].remove(nickname)
-        self.broadcast_event('announcement', '%s has disconnected' % nickname)
-        self.broadcast_event('nicknames', self.request['nicknames'])
-
         self.disconnect(silent=True)
 
     def on_user_message(self, msg):
@@ -63,7 +59,7 @@ class Application:
             # Notice it is wrapped in a list although it could be any iterable.
             return [response_body]
         elif path.startswith("socket.io"):
-            socketio_manage(environ, {'': ChatNamespace}, self.request)
+            socketio_manage(environ, {'': LoggerNamespace}, self.request)
         else:
             with open(path, "r") as f:
                 data = f.read()
@@ -77,7 +73,7 @@ class Application:
                 else:
                     content_type = "text/html"
 
-                start_response('200 OK', [('Content-Type', content_type)])
+                start_response('200 OK', [('Content-Type', content_type), ('Content-Length', len(data))])
                 return [data]            
             return not_found(start_response)
 
