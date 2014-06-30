@@ -6,7 +6,7 @@ $(window).bind("beforeunload", function() {
 });
 
 socket.on('connect', function () {
-    $('#chat').addClass('connected');
+    //$('#chat').addClass('connected');
 });
 
 socket.on('error', function (e) {

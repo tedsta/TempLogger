@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link href="static/css/style.css" rel="stylesheet">
-    <script type="text/javascript" src="static/jquery-1.6.1.min.js"></script>
-    <script type="text/javascript" src="static/socket.io.js"></script>
-    <script type="text/javascript" src="client.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TempLogger</title>
+    <link rel="stylesheet" href="css/foundation.css">
+    <script src="js/vendor/modernizr.js"></script>
   </head>
-<body>
-  <p id="degree-days">hello</p>
-  <div id="chat">
+  <body>
+    <p id="degree-days">hello</p>
     <div id="datetime">
-      <form id="submit-datetime" class="wrap">
+      <form id="submit-datetime">
         <p>Start, end datetime:</p>
         <input id="start-datetime">
         <input id="end-datetime">
-        <button>Submit</button>
+        <input type="submit" value="Submit" class="small radius button">
       </form>
     </div>
-    <div id="connecting">
-      <div class="wrap">Connecting to socket.io server</div>
-    </div>
-  </div>
-</body>
+    <script src="js/vendor/jquery.js"></script>
+    <script src="js/socket.io.js"></script>
+    <script src="js/foundation.min.js"></script>
+    <script src="client.js"></script>
+  </body>
 </html>
