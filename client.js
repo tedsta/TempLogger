@@ -1,3 +1,5 @@
+$(document).foundation();
+
 // socket.io specific code
 var socket = io.connect();
 
