@@ -5,7 +5,7 @@ import os, glob, sys, datetime
 
 def main():
     if len(sys.argv) < 4:
-        sys.stderr.write("usage: python degree_days_since.py <temp> <ambient or probe>")
+        sys.stderr.write("usage: python degree_days_since.py <temp> <ambient or probe> ")
         sys.stderr.write("<start_date_time_string> [end_date_time_string]\n")
         sys.exit()
 
@@ -102,17 +102,17 @@ def degree_days_since(temp, ambient, startstring, endstring):
     Data in files looks like this:
     Epoch,Date-Time,T1_C,T2_C,H_pct
     1403121302.3,2014_06_18_09_55,26.7,23.500,43.8
+
+    Returns an error string if something goes wrong.
     """
     # Convert start and end strings to datetime objects
     start = parse_date_time_string(startstring)
     if not start:
-        sys.stderr.write("Error parsing start date string: " + startstring + "\n")
-        sys.exit()
+        return "Error parsing start date string: " + startstring
     if endstring:
         end = parse_date_time_string(endstring)
         if not end:
-            sys.stderr.write("Error parsing end date string: " + endstring + "\n")
-            sys.exit()
+            return "Error parsing end date string: " + endstring
     else:
         end = datetime.datetime.now()
 
@@ -120,7 +120,23 @@ def degree_days_since(temp, ambient, startstring, endstring):
     all_files = sorted(glob.glob('Data/*')) # should give files in order?
     relevant_files = keep_files_in_range(all_files, start, end)
 
+    # Make sure that first file matches start and last file matches end
+    if not filename_matches_date(relevant_files[0], start):
+        return "Error retrieving files. Your start date was " + startstring +\
+                " and the earliest file found was " + relevant_files[0]
+    if not filename_matches_date(relevant_files[-1], end):
+        if not endstring:
+            endstring = str(end.year) + "_" + str(end.month) + "_" + str(end.day)
+        return "Error retrieving files. Your end date was " + endstring +\
+                " and the latest file found was " + relevant_files[0]
+
+
+    # Make sure there are no gaps in relevant files
+    if not files_are_in_sequence(relevant_files):
+        return "Error with Data files: missing a file in " + str(relevant_files)
+
     # Open each file, increment degree days for each line that falls within range
+    # TODO make sure no gaps in readings!!!
     degree_days = 0.0
     previous_date_time = None
     for tempfile in relevant_files:
@@ -142,6 +158,35 @@ def degree_days_since(temp, ambient, startstring, endstring):
                         degree_days += calculate_degree_days(line, previous_date_time, temp, ambient)
                         previous_date_time = date_time_from_entry(line)
     return degree_days
+
+def filename_matches_date(filename, date):
+    """Returns True if year/month/day of filename matches datetime object."""
+    # Filename looks like 'Data/2014_06_18.csv'
+    file_datestring = filename.split("/")[1].split(".")[0] # now it's '2014_06_18'
+    file_date = parse_date_time_string(file_datestring)
+    if date.year != file_date.year:
+        return False
+    elif date.month != file_date.month:
+        return False 
+    elif date.day != file_date.day:
+        return False
+    else:
+        return True
+
+def files_are_in_sequence(files):
+    if len(files) == 1:
+        return True
+    first_datestring = files[0].split("/")[1].split(".")[0]
+    current_date = parse_date_time_string(first_datestring)
+    for filename in files[1:]:
+        this_datestring = filename.split("/")[1].split(".")[0]
+        this_date = parse_date_time_string(this_datestring)
+        diff = this_date - current_date
+        if diff.days != 1:
+            return False
+        current_date = this_date
+    return True
+
 
 def line_comes_before_start(line, start):
     # lines look like:
