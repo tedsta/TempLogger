@@ -23,7 +23,8 @@ function on_degree_days(deg_days) {
 // DOM manipulation
 $(function () {
     $('#submit-datetime').submit(function (ev) {
-        socket.emit('start_end_datetime', $('#base-temp').val(), $('input[name=ambient-probe]:checked').val(), $('#start-datetime').val(), $('#end-datetime').val());
+        ambient_probe = ($('#ambient-probe').is(':checked')) ? "probe" : "ambient";
+        socket.emit('start_end_datetime', $('#base-temp').val(), ambient_probe, $('#start-datetime').val(), $('#end-datetime').val());
         return false;
     });
 });
