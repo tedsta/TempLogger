@@ -8,13 +8,46 @@
     <script src="js/vendor/modernizr.js"></script>
   </head>
   <body>
-    <p id="degree-days">hello</p>
     <hr>
     <div class="row">
       <form id="submit-datetime">
-        <input type="text" id="start-datetime" placeholder="start datetime">
-        <input type="text" id="end-datetime" placeholder="end datetime">
-        <input type="submit" value="Submit" class="small button">
+        <div class="row">
+          <div class="small-6 columns">
+            <input type="text" id="start-datetime" placeholder="start datetime">
+          </div>
+          <div class="small-6 columns">
+            <input type="text" id="end-datetime" placeholder="end datetime">
+          </div>
+        </div>
+        <div class="row">
+          <div class="small-6 columns">
+            <input type="text" id="basetemp" placeholder="base temperature">
+          </div>
+          <div class="small-6 columns">
+            <div class="row collapse">	
+              <div class="small-5 columns">	
+                <span class="prefix" style="background-color:#dddddd">Ambient</span>
+              </div>
+              <div class="small-2 columns">	
+                <div class="switch large">
+                  <input id="ambient-probe" type="checkbox">
+		  <label for="ambient-probe"></label>
+                </div>
+              </div>
+              <div class="small-5 columns">	
+                <span class="postfix" style="background-color:#008cba">Probe</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="small-6 columns">
+            <h2 id="degree-days">hello</h2>
+          </div>
+          <div class="small-6 columns">
+            <input type="submit" value="Submit" class="small button">
+          </div>
+        </div>
       </form>
     </div>
     <script src="js/vendor/jquery.js"></script>
