@@ -4,8 +4,8 @@
 import os, glob, sys, datetime
 
 def main():
-    if len(sys.argv) < 3:
-        sys.stderr.write("usage: python degree_days_since.py <temp> ")
+    if len(sys.argv) < 4:
+        sys.stderr.write("usage: python degree_days_since.py <temp> <ambient or probe>")
         sys.stderr.write("<start_date_time_string> [end_date_time_string]\n")
         sys.exit()
 
@@ -16,22 +16,28 @@ def main():
     except ValueError:
         sys.stderr.write("Error parsing temperature: " + sys.argv[1] + "\n")
         sys.exit()
+
+    # Ambient or Probe
+    if sys.argv[2] == "ambient":
+        ambient = True
+    elif sys.argv[2] == "probe":
+        ambient = False
+    else:
+        sys.stderr.write("Error parsing arguments. Second argument should be 'ambient' or 'probe'.\n")
+        sys.exit()
     
     # Start date/time
-    start_date_time = parse_date_time_string(sys.argv[2])
-    if not start_date_time:
-        sys.exit()
+    start_date_time_string = sys.argv[3]
         
     # End date/time (optional)
-    if len(sys.argv) > 3:
-        end_date_time = parse_date_time_string(sys.argv[3])
-        if not end_date_time:
-            sys.exit()
+    if len(sys.argv) > 4:
+        end_date_time_string = sys.argv[4]
     else:
-        end_date_time = datetime.datetime.now()
+        end_date_time_string = ""
     
     ## CALCULATE AND PRINT ##
-    print(degree_days_since(temp, start_date_time, end_date_time))
+    print(degree_days_since(temp, ambient, start_date_time_string, end_date_time_string))
+    return degree_days_since(temp, ambient, start_date_time_string, end_date_time_string)
 
 
 ## PARSING FUNCTIONS ##
@@ -72,20 +78,24 @@ def date_time_from_entry(line):
     datestring = fields[1]
     return parse_date_time_string(datestring)
 
-def temp_and_date_time_from_line(line):
+def temp_and_date_time_from_line(line, ambient):
     datetime = date_time_from_entry(line)
-    temp = float(line.strip().split(",")[3])
-    # TODO which temp now?
+    if ambient:
+        temp = float(line.strip().split(",")[2])
+    else:
+        temp = float(line.strip().split(",")[3])
     return temp, datetime
 
 
 ## CALCULATING STUFF FUNCTIONS ##
 #################################
 
-def degree_days_since(temp, start, end):
+def degree_days_since(temp, ambient, startstring, endstring):
     """Reach into Data/ folder, calculate degree days from start to end, return
 
     Args:
+        temp: base temperature for calculating degree days
+        ambient: a boolean; if True, use ambient temp, if False use probe
         start: a datetime object
         end: another datetime object
     
@@ -93,6 +103,19 @@ def degree_days_since(temp, start, end):
     Epoch,Date-Time,T1_C,T2_C,H_pct
     1403121302.3,2014_06_18_09_55,26.7,23.500,43.8
     """
+    # Convert start and end strings to datetime objects
+    start = parse_date_time_string(startstring)
+    if not start:
+        sys.stderr.write("Error parsing start date string: " + startstring + "\n")
+        sys.exit()
+    if endstring:
+        end = parse_date_time_string(endstring)
+        if not end:
+            sys.stderr.write("Error parsing end date string: " + endstring + "\n")
+            sys.exit()
+    else:
+        end = datetime.datetime.now()
+
     # Get all files from start date to end date
     all_files = sorted(glob.glob('Data/*')) # should give files in order?
     relevant_files = keep_files_in_range(all_files, start, end)
@@ -116,7 +139,7 @@ def degree_days_since(temp, start, end):
                         previous_date_time = date_time_from_entry(line)
                         continue
                     else:
-                        degree_days += calculate_degree_days(line, previous_date_time, temp)
+                        degree_days += calculate_degree_days(line, previous_date_time, temp, ambient)
                         previous_date_time = date_time_from_entry(line)
     return degree_days
 
@@ -159,8 +182,8 @@ def difference_in_days(old_time, new_time):
     difference += timedelta.seconds / 86400.0
     return difference
 
-def calculate_degree_days(line, previous_date_time, basetemp):
-    newtemp, new_date_time = temp_and_date_time_from_line(line)
+def calculate_degree_days(line, previous_date_time, basetemp, ambient):
+    newtemp, new_date_time = temp_and_date_time_from_line(line, ambient)
     tempdiff = newtemp - basetemp
     if tempdiff <= 0:
         return 0.0
