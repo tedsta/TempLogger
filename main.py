@@ -9,6 +9,8 @@ from degree_days_since import degree_days_since
 
 class LoggerNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_start_end_datetime(self, base_temp, ambient_probe, start, end):
+        start = start.replace("-", "_").replace(" ", "_").replace(":", "_")
+        end = end.replace("-", "_").replace(" ", "_").replace(":", "_")
         deg_days = degree_days_since(float(base_temp), ambient_probe=="ambient", start, end)
         self.broadcast_event('degree_days', str(deg_days)) 
         #dgs = degree_days_since(20, start, end)
