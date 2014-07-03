@@ -82,7 +82,7 @@ class Application:
 ###############################################################
 
 def main():
-    httpd = SocketIOServer(('localhost', 8000), Application(), resource="socket.io")
+    httpd = SocketIOServer(('0.0.0.0', 8000), Application(), resource="socket.io")
     httpd.serve_forever()
 
 if __name__ == "__main__":
