@@ -12,7 +12,7 @@ class LoggerNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         start = start.replace("-", "_").replace(" ", "_").replace(":", "_")
         end = end.replace("-", "_").replace(" ", "_").replace(":", "_")
         deg_days = degree_days_since(float(base_temp), ambient_probe=="ambient", start, end)
-        self.broadcast_event('degree_days', str(deg_days)) 
+        self.emit('degree_days', str(deg_days)) 
         #dgs = degree_days_since(20, start, end)
         #self.broadcast_event('degree_days', str(dgs)) 
         # Just have them join a default-named room
