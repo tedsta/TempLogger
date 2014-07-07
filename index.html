@@ -3,60 +3,97 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TempLogger</title>
+    <title>THLogger</title>
     <link rel="stylesheet" href="css/foundation.css">
     <link rel="stylesheet" type="text/css" href="foundation-icon-fonts-3/foundation-icons.css" />
     <link rel="stylesheet" href="css/foundation_calendar.css">
+    <link rel="stylesheet" href="css/thlogger.css">
     <script src="js/vendor/modernizr.js"></script>
   </head>
   <body>
-    <hr>
-    <div class="row">
-      <form id="submit-datetime">
-        <div class="row">
-          <div class="small-6 columns">
-            <input type="text" id="start-datetime" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
+    <div class="content">
+      <h2>Data Retrieval</h2>
+      <hr>
+      <h3>Data Tables (doesn't work yet)</h3>
+      <div class="row">
+        <form id="data-tables">
+          <div class="row">
+            <div class="small-5 columns">
+              <input type="text" id="start-datetime-data-tables" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
+            </div>
+            <div class="small-5 columns">
+              <input type="text" id="end-datetime-data-tables" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
+            </div>
+            <div class="small-2 columns">
+              <input type="submit" value="Submit" class="small button">
+            </div>
           </div>
-          <div class="small-6 columns">
-            <input type="text" id="end-datetime" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
+        </form>
+      </div>
+
+      <h3>Data Plots (Doesn't work yet)</h3>
+      <div class="row">
+        <form id="data-plots">
+          <div class="row">
+            <div class="small-6 columns">
+              <input type="text" id="start-datetime-data-plots" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
+            </div>
+            <div class="small-6 columns">
+              <input type="submit" value="Submit" class="small button">
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="small-6 columns">
-            <input type="text" id="base-temp" placeholder="base temperature">
+        </form>
+      </div>
+
+      <h2>Degree Days Calculator</h2>
+      <hr>
+      <div class="row">
+        <form id="submit-datetime">
+          <div class="row">
+            <div class="small-6 columns">
+              <input type="text" id="start-datetime" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
+            </div>
+            <div class="small-6 columns">
+              <input type="text" id="end-datetime" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
+            </div>
           </div>
-          <div class="small-6 columns">
-            <div class="row collapse">	
-              <div class="small-5 columns">	
-                <span class="prefix" style="background-color:#dddddd">Ambient</span>
-              </div>
-              <div class="small-2 columns">	
-                <div class="switch large">
-                  <input id="ambient-probe" type="checkbox">
-		              <label for="ambient-probe"></label>
+          <div class="row">
+            <div class="small-6 columns">
+              <input type="text" id="base-temp" placeholder="base temperature">
+            </div>
+            <div class="small-6 columns">
+              <div class="row collapse">	
+                <div class="small-5 columns">	
+                  <span class="prefix" style="background-color:#dddddd">Ambient</span>
                 </div>
-              </div>
-              <div class="small-5 columns">	
-                <span class="postfix" style="color:#ffffff;background-color:#008cba">Probe</span>
+                <div class="small-2 columns">	
+                  <div class="switch large">
+                    <input id="ambient-probe" type="checkbox">
+                    <label for="ambient-probe"></label>
+                  </div>
+                </div>
+                <div class="small-5 columns">	
+                  <span class="postfix" style="color:#ffffff;background-color:#008cba">Probe</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="small-6 columns">
-            <h2 id="degree-days">hello</h2>
+          <div class="row">
+            <div class="small-6 columns">
+              <h2 id="degree-days">0.0</h2>
+            </div>
+            <div class="small-6 columns">
+              <input type="submit" value="Submit" class="small button">
+            </div>
           </div>
-          <div class="small-6 columns">
-            <input type="submit" value="Submit" class="small button">
+          <div class="row">
+            <a href="https://twitter.com/share" class="twitter-share-button" data-url="https://github.com/tedsta/TempLogger"
+            data-text="OMG I just calculated degree days it was awesome" data-size="large" 
+            data-count="none" data-hashtags="DegreeDaysSince">Tweet</a>
+            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
           </div>
-        </div>
-        <div class="row">
-          <a href="https://twitter.com/share" class="twitter-share-button" data-url="https://github.com/tedsta/TempLogger"
-          data-text="OMG I just calculated degree days it was awesome" data-size="large" 
-          data-count="none" data-hashtags="DegreeDaysSince">Tweet</a>
-          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
     <script src="js/vendor/jquery.js"></script>
     <script src="js/socket.io.js"></script>
