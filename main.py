@@ -5,11 +5,22 @@ from socketio.server import SocketIOServer
 from socketio.namespace import BaseNamespace
 from socketio.mixins import RoomsMixin, BroadcastMixin
 
-from degree_days_since import degree_days_since
+from degree_days_since import degree_days_since, parse_date_time_string, get_files_from_start_to_end
 
 class LoggerNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
-    def on_data_tables(self, start, end):
-        self.emit("data_tables", ["foooo", "dog"])
+    def on_data_tables(self, startstring, endstring):
+        startstring = startstring.replace("-", "_").replace(" ", "_").replace(":", "_")
+        endstring = endstring.replace("-", "_").replace(" ", "_").replace(":", "_")
+
+        start = parse_date_time_string(startstring)
+        end = parse_date_time_string(endstring)
+
+        # Get all files from start date to end date
+        relevant_files = get_files_from_start_to_end("Data", start, end)
+
+        # Create list of files and date strings to send back
+        files = [[file_path, file_path.split("/")[-1].split(".")[0].replace("_", "-")] for file_path in relevant_files]
+        self.emit("data_tables", files)
 
     def on_get_degree_days(self, base_temp, ambient_probe, start, end):
         start = start.replace("-", "_").replace(" ", "_").replace(":", "_")

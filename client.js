@@ -20,7 +20,7 @@ socket.on('degree_days', on_degree_days);
 function on_data_tables(file_list) {
     $("#data-plots-list").empty()
     for (var i = 0; i < file_list.length; i++) {
-        $("#data-plots-list").append("<li>"+file_list[i]+"</li>")
+        $("#data-plots-list").append("<li><a href=\""+file_list[i][0]+"\">"+file_list[i][1]+"</a></li>")
     }
 }
 
