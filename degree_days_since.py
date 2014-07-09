@@ -86,6 +86,8 @@ def temp_and_date_time_from_line(line, ambient):
         temp = float(line.strip().split(",")[3])
     return temp, datetime
 
+def datestring_from_filename(filename):
+    return filename.split("/")[-1].split(".")[0]
 
 ## CALCULATING STUFF FUNCTIONS ##
 #################################
@@ -232,6 +234,29 @@ def get_files_from_start_to_end(path, start, end):
     relevant_files = keep_files_in_range(all_files, start, end)
     return relevant_files
 
+def get_file_closest_to_datetime(path, date):
+    # TODO set a reasonable minimum -- this will give you a file
+    # from weeks ago ...
+    MINIMUM_TIMEDELTA = datetime.timedelta.max
+    all_files = sorted(glob.glob(path + '/*')) # should give files in order?
+    smallest_timedelta = datetime.timedelta.max
+    closest_file = None
+    for filename in all_files:
+        file_datestring = filename.split("/")[-1].split(".")[0]
+        file_datetime = parse_date_time_string(file_datestring)
+        diff = abs(file_datetime - date)
+        if diff < smallest_timedelta:
+            smallest_timedelta = diff
+            closest_file = filename
+    # Make sure closest file is close enough
+    closest_datestring = datestring_from_filename(closest_file)
+    closest_datetime = parse_date_time_string(closest_datestring)
+    diff = abs(date - closest_datetime)
+    if diff < MINIMUM_TIMEDELTA:
+        return closest_file
+    else:
+        return "Sorry, couldn't find any files close enough to the date provided."
+
 def keep_files_in_range(files, start, end):
     keepers = []
     for filename in files:
@@ -240,7 +265,7 @@ def keep_files_in_range(files, start, end):
     return keepers
 
 def filename_within_range(filename, start, end):
-    """Return bool for whether file falls between start and end (inclusive).
+    """Return bool for whether file falls between start and end days (inclusive).
 
     Filename formats should be 'Data/2014_06_19.csv'
     """
