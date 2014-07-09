@@ -14,7 +14,15 @@ socket.on('connect', function () {
 socket.on('error', function (e) {
 });
 
+socket.on('data_tables', on_data_tables);
 socket.on('degree_days', on_degree_days);
+
+function on_data_tables(file_list) {
+    $("#data-plots-list").empty()
+    for (var i = 0; i < file_list.length; i++) {
+        $("#data-plots-list").append("<li>"+file_list[i]+"</li>")
+    }
+}
 
 function on_degree_days(deg_days) {
     $('#degree-days').text(deg_days);
@@ -22,9 +30,13 @@ function on_degree_days(deg_days) {
 
 // DOM manipulation
 $(function () {
-    $('#submit-datetime').submit(function (ev) {
+    $('#data-tables').submit(function (ev) {
+        socket.emit('data_tables', $('#data-tables-start').val(), $('#data-tables-end').val());
+        return false;
+    });
+    $('#degree-days-calculator').submit(function (ev) {
         ambient_probe = ($('#ambient-probe').is(':checked')) ? "probe" : "ambient";
-        socket.emit('start_end_datetime', $('#base-temp').val(), ambient_probe, $('#start-datetime').val(), $('#end-datetime').val());
+        socket.emit('get_degree_days', $('#base-temp').val(), ambient_probe, $('#degree-days-start').val(), $('#degree-days-end').val());
         return false;
     });
 });

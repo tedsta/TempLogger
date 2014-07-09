@@ -19,16 +19,20 @@
         <form id="data-tables">
           <div class="row">
             <div class="small-5 columns">
-              <input type="text" id="start-datetime-data-tables" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
+              <input type="text" id="data-tables-start" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
             </div>
             <div class="small-5 columns">
-              <input type="text" id="end-datetime-data-tables" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
+              <input type="text" id="data-tables-end" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
             </div>
             <div class="small-2 columns">
               <input type="submit" value="Submit" class="small button">
             </div>
           </div>
         </form>
+      </div>
+      <div class="row">
+        <ul id="data-plots-list" class="disc">
+        </ul>
       </div>
 
       <h3>Data Plots (Doesn't work yet)</h3>
@@ -48,13 +52,13 @@
       <h2>Degree Days Calculator</h2>
       <hr>
       <div class="row">
-        <form id="submit-datetime">
+        <form id="degree-days-calculator">
           <div class="row">
             <div class="small-6 columns">
-              <input type="text" id="start-datetime" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
+              <input type="text" id="degree-days-start" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
             </div>
             <div class="small-6 columns">
-              <input type="text" id="end-datetime" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
+              <input type="text" id="degree-days-end" data-date-time data-value-format="%Y-%m-%d %H:%M:%S" />
             </div>
           </div>
           <div class="row">

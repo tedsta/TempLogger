@@ -8,7 +8,10 @@ from socketio.mixins import RoomsMixin, BroadcastMixin
 from degree_days_since import degree_days_since
 
 class LoggerNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
-    def on_start_end_datetime(self, base_temp, ambient_probe, start, end):
+    def on_data_tables(self, start, end):
+        self.emit("data_tables", ["foooo", "dog"])
+
+    def on_get_degree_days(self, base_temp, ambient_probe, start, end):
         start = start.replace("-", "_").replace(" ", "_").replace(":", "_")
         end = end.replace("-", "_").replace(" ", "_").replace(":", "_")
         deg_days = degree_days_since(float(base_temp), ambient_probe=="ambient", start, end)
