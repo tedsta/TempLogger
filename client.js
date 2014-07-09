@@ -16,6 +16,7 @@ socket.on('error', function (e) {
 
 socket.on('data_tables', on_data_tables);
 socket.on('degree_days', on_degree_days);
+socket.on('degree_days_error', on_degree_days_error);
 
 function on_data_tables(file_list) {
     $("#data-plots-list").empty()
@@ -26,6 +27,11 @@ function on_data_tables(file_list) {
 
 function on_degree_days(deg_days) {
     $('#degree-days').text(deg_days);
+}
+
+function on_degree_days_error(msg) {
+    $("<div data-alert class=\"alert-box alert radius\">"+msg+"<a href=\"#\" class=\"close\">&times;</a></div>").insertAfter($("#degree-days-separator"))
+    $(document).foundation();
 }
 
 // DOM manipulation
