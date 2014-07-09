@@ -96,8 +96,8 @@ def degree_days_since(temp, ambient, startstring, endstring):
     Args:
         temp: base temperature for calculating degree days
         ambient: a boolean; if True, use ambient temp, if False use probe
-        start: a datetime object
-        end: another datetime object
+        startstring: start time in YYYY_MM_DD_HH_MM format
+        end: optional end time in same format
     
     Data in files looks like this:
     Epoch,Date-Time,T1_C,T2_C,H_pct
@@ -105,7 +105,6 @@ def degree_days_since(temp, ambient, startstring, endstring):
 
     Returns an error string if something goes wrong.
     """
-    # Convert start and end strings to datetime objects
     start = parse_date_time_string(startstring)
     if not start:
         return "Error parsing start date string: " + startstring
@@ -117,8 +116,7 @@ def degree_days_since(temp, ambient, startstring, endstring):
         end = datetime.datetime.now()
 
     # Get all files from start date to end date
-    all_files = sorted(glob.glob('Data/*')) # should give files in order?
-    relevant_files = keep_files_in_range(all_files, start, end)
+    relevant_files = get_files_from_start_to_end("Data", start, end)
 
     # Make sure that first file matches start and last file matches end
     if not filename_matches_date(relevant_files[0], start):
@@ -132,7 +130,7 @@ def degree_days_since(temp, ambient, startstring, endstring):
 
 
     # Make sure there are no gaps in relevant files
-    if not files_are_in_sequence(relevant_files):
+    if not no_missing_files(relevant_files):
         return "Error with Data files: missing a file in " + str(relevant_files)
 
     # Open each file, increment degree days for each line that falls within range
@@ -143,6 +141,7 @@ def degree_days_since(temp, ambient, startstring, endstring):
         with open(tempfile, "r") as tfile:
             for line in tfile:
                 if "Epoch" in line:
+                    # Header line
                     continue
                 elif line_comes_before_start(line, start):
                     continue
@@ -162,7 +161,7 @@ def degree_days_since(temp, ambient, startstring, endstring):
 def filename_matches_date(filename, date):
     """Returns True if year/month/day of filename matches datetime object."""
     # Filename looks like 'Data/2014_06_18.csv'
-    file_datestring = filename.split("/")[1].split(".")[0] # now it's '2014_06_18'
+    file_datestring = filename.split("/")[-1].split(".")[0] # now it's '2014_06_18'
     file_date = parse_date_time_string(file_datestring)
     if date.year != file_date.year:
         return False
@@ -173,13 +172,14 @@ def filename_matches_date(filename, date):
     else:
         return True
 
-def files_are_in_sequence(files):
+def no_missing_files(files):
+    """Assumes files are already sorted."""
     if len(files) == 1:
         return True
-    first_datestring = files[0].split("/")[1].split(".")[0]
+    first_datestring = files[0].split("/")[-1].split(".")[0]
     current_date = parse_date_time_string(first_datestring)
     for filename in files[1:]:
-        this_datestring = filename.split("/")[1].split(".")[0]
+        this_datestring = filename.split("/")[-1].split(".")[0]
         this_date = parse_date_time_string(this_datestring)
         diff = this_date - current_date
         if diff.days != 1:
@@ -192,13 +192,7 @@ def line_comes_before_start(line, start):
     # lines look like:
     # 1403121302.3,2014_06_18_09_55,26.7,23.500,43.8
     date = line.strip().split(",")[1]
-    splitdate = date.split("_")
-    year = int(splitdate[0])
-    month = int(splitdate[1])
-    day = int(splitdate[2])
-    hour = int(splitdate[3])
-    minute = int(splitdate[4])
-    linedate = datetime.datetime(year, month, day, hour, minute)
+    linedate = parse_date_time_string(date)
     if linedate < start:
         return True
     else:
@@ -208,13 +202,7 @@ def line_comes_after_end(line, end):
     # lines look like:
     # 1403121302.3,2014_06_18_09_55,26.7,23.500,43.8
     date = line.strip().split(",")[1]
-    splitdate = date.split("_")
-    year = int(splitdate[0])
-    month = int(splitdate[1])
-    day = int(splitdate[2])
-    hour = int(splitdate[3])
-    minute = int(splitdate[4])
-    linedate = datetime.datetime(year, month, day, hour, minute)
+    linedate = parse_date_time_string(date)
     if linedate > end:
         return True
     else:
@@ -238,6 +226,11 @@ def calculate_degree_days(line, previous_date_time, basetemp, ambient):
 
 ## FILE STUFF FUNCTIONS ##
 ##########################
+
+def get_files_from_start_to_end(path, start, end):
+    all_files = sorted(glob.glob(path + '/*')) # should give files in order?
+    relevant_files = keep_files_in_range(all_files, start, end)
+    return relevant_files
 
 def keep_files_in_range(files, start, end):
     keepers = []
