@@ -93,6 +93,7 @@ class Application:
                     content_type = "application/x-shockwave-flash"
                 else:
                     content_type = "text/html"
+                    data = "<pre>"+data+"</pre>"
 
                 start_response('200 OK', [('Content-Type', content_type), ('Content-Length', len(data))])
                 return [data]            
