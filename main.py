@@ -5,7 +5,7 @@ from socketio.server import SocketIOServer
 from socketio.namespace import BaseNamespace
 from socketio.mixins import RoomsMixin, BroadcastMixin
 
-from degree_days_since import degree_days_since, parse_date_time_string, get_files_from_start_to_end
+from degree_days_since import degree_days_since, parse_date_time_string, get_files_from_start_to_end, get_file_closest_to_datetime
 
 class LoggerNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_data_tables(self, startstring, endstring):
@@ -21,6 +21,17 @@ class LoggerNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         # Create list of files and date strings to send back
         files = [[file_path, file_path.split("/")[-1].split(".")[0].replace("_", "-")] for file_path in relevant_files]
         self.emit("data_tables", files)
+
+    def on_data_plot(self, date_string):
+        date_string = date_string.replace("-", "_").replace(" ", "_").replace(":", "_")
+
+        date = parse_date_time_string(date_string)
+
+        # Get all files from start date to end date
+        relevant_file = get_file_closest_to_datetime("Plots", date)
+
+        # Create list of files and date strings to send back
+        self.emit("data_plot", relevant_file)
 
     def on_get_degree_days(self, base_temp, ambient_probe, start, end):
         start = start.replace("-", "_").replace(" ", "_").replace(":", "_")
@@ -91,6 +102,8 @@ class Application:
                     content_type = "text/css"
                 elif path.endswith(".swf"):
                     content_type = "application/x-shockwave-flash"
+                elif path.endswith(".png") or path.endswith(".jpg") or path.endswith(".jpeg") or path.endswith(".gif"):
+                    content_type = "text/html"
                 else:
                     content_type = "text/html"
                     data = "<pre>"+data+"</pre>"
